@@ -25,7 +25,8 @@ public class WebFluxSecurityConfig
         http.securityContextRepository(this.securityContextRepository)
                 .authorizeExchange()
                 .anyExchange().authenticated().and()
-                .httpBasic().disable();
+                .httpBasic().disable()
+                .csrf().disable();
 
         return http.build();
     }

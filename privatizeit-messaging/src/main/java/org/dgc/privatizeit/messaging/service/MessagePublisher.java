@@ -11,7 +11,7 @@ public class MessagePublisher implements Publisher<Message>
     @Override
     public void subscribe(Subscriber<? super Message> subscriber)
     {
-        subscriber = subscriber;
+        this.subscriber = subscriber;
     }
 
     public void sendMessage(Message message)
