@@ -9,7 +9,7 @@ public class Message implements Serializable
     private Long duration;
     private byte[] payload;
     private List<MessageProperty> properties;
-    private List<String> recipientsId;
+    private String recipientId;
 
     //region Getters/Setters
 
@@ -53,14 +53,15 @@ public class Message implements Serializable
         this.properties = properties;
     }
 
-    public List<String> getRecipientsId()
+    public String getRecipientId()
     {
-        return recipientsId;
+        return recipientId;
     }
 
-    public void setRecipientsId(List<String> recipientsId)
+    public void setRecipientId(String recipientId)
     {
-        this.recipientsId = recipientsId;
+        this.recipientId = recipientId;
     }
+
     //endregion
 }

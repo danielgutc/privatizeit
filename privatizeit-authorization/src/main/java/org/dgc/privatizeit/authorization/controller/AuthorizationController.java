@@ -58,6 +58,7 @@ public class AuthorizationController
         try
         {
             String token = authorizationService.authenticateUser(user);
+            logger.info(token);
 
             return Mono.just(ResponseEntity.status(HttpStatus.OK).header(HEADER_STRING, TOKEN_PREFIX + " " + token).build());
         }

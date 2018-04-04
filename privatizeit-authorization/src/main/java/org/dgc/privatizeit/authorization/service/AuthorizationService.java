@@ -19,7 +19,7 @@ import java.util.Date;
 public class AuthorizationService
 {
     private static Logger logger = LoggerFactory.getLogger(AuthorizationService.class);
-    private static final int EXP_LENGTH = 86400000;
+    private static final long EXP_LENGTH = 86400000000L;
 
     @Autowired
     private UserRepository userRepository;
