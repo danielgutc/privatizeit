@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,7 +17,7 @@ import java.util.Date;
 @Service
 public class AuthorizationService
 {
-    private static Logger logger = LoggerFactory.getLogger(AuthorizationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizationService.class);
     private static final long EXP_LENGTH = 86400000000L;
 
     @Autowired

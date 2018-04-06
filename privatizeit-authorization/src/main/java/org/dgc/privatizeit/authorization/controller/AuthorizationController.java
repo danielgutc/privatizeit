@@ -17,7 +17,7 @@ import java.net.URI;
 @RestController
 public class AuthorizationController
 {
-    private static Logger logger = LoggerFactory.getLogger(AuthorizationController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizationController.class);
 
     private static final String TOKEN_PREFIX = "Bearer";
     private static final String HEADER_STRING = "Authorization";
