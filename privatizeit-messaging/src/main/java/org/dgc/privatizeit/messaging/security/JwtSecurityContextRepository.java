@@ -3,6 +3,8 @@ package org.dgc.privatizeit.messaging.security;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,8 @@ import java.util.List;
 @Component
 public class JwtSecurityContextRepository implements ServerSecurityContextRepository
 {
+    private static final Logger logger = LoggerFactory.getLogger(JwtSecurityContextRepository.class);
+
     @Value("${application.properties.security.secret}")
     private String secret;
 
@@ -50,15 +54,15 @@ public class JwtSecurityContextRepository implements ServerSecurityContextReposi
             }
             catch (SignatureException ex)
             {
-                ex.printStackTrace();
+                logger.warn(ex.getMessage());
             }
             catch (ExpiredJwtException ex)
             {
-                ex.printStackTrace();
+                logger.debug(ex.getMessage());;
             }
             catch (Exception ex)
             {
-                ex.printStackTrace();
+                throw new RuntimeException(ex.getMessage(), ex);
             }
         }
 

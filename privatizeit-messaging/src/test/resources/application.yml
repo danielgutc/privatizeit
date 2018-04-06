@@ -5,4 +5,4 @@ application:
   properties:
     debug: true
     security:
-      secret: xxxxxxxxxxxxxxxxxxxxxxxx
+      secret: 4a6c201b27aced20eb762243138439b3

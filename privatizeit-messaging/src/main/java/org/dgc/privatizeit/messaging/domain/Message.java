@@ -64,4 +64,26 @@ public class Message implements Serializable
     }
 
     //endregion
+
+
+    @Override
+    public String toString()
+    {
+        final StringBuffer sb = new StringBuffer("Message{");
+        sb.append("issuerId='").append(issuerId).append('\'');
+        sb.append(", duration=").append(duration);
+        sb.append(", payload=");
+        if (payload == null) sb.append("null");
+        else
+        {
+            sb.append('[');
+            for (int i = 0; i < payload.length; ++i)
+                sb.append(i == 0 ? "" : ", ").append(payload[i]);
+            sb.append(']');
+        }
+        sb.append(", properties=").append(properties);
+        sb.append(", recipientId='").append(recipientId).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

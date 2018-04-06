@@ -1,85 +1,64 @@
 package org.dgc.privatizeit.messaging.service;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import org.dgc.privatizeit.messaging.domain.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.UnicastProcessor;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Flow;
 
 @Service
 public class MessageService
 {
-    private static final String MESSAGES_MAP = "MESSAGES";
     private static final String MESSAGES_TOPIC = "MESSAGES";
-    private IMap<String, List<Message>> messagesMap;
     private ITopic<Message> messagesTopic;
-    //private Map<String, Flux<ServerSentEvent<List<Message>>>> usersConnections = new HashMap<>();
-    private Map<String, MessagePublisher> publishers = new HashMap<>();
+    private Map<String, UnicastProcessor<Message>> processors = new HashMap<>();
 
-    @Autowired
+@Autowired
     private HazelcastInstance hazelcastInstance;
 
     @PostConstruct
     public void init()
     {
-        //this.messagesMap = hazelcastInstance.getMap(MESSAGES_MAP);
         messagesTopic = this.hazelcastInstance.getTopic(MESSAGES_TOPIC);
         messagesTopic.addMessageListener(this::processMessage);
     }
 
-   /* public void addMessage(Message message)
+    /**
+     * Register a new user connection to enable new messages notifications.
+     * @param userId to be connected.
+     * @return a reactive publisher that notifies new messages.
+     */
+    public UnicastProcessor<Message> registerUser(String userId)
     {
-        if (!messagesMap.containsKey(message.getRecipientId()))
-        {
-            messagesMap.put(message.getRecipientId(), new ArrayList<Message>());
-        }
+        UnicastProcessor<Message> processor = UnicastProcessor.<Message>create();
+        processors.put(userId, processor);
 
-        messagesMap.get(message.getRecipientId()).add(message);
+        return processor;
     }
 
-    public List<Message> getMessages(String userId)
-    {
-        return messagesMap.get(userId);
-    }*/
-
-/*   public Flux<ServerSentEvent<List<Message>>> registerUser(String userId, Flux<ServerSentEvent<List<Message>>> userConnection)
-   {
-       usersConnections.put(userId, userConnection);
-
-       return userConnection;
-   }*/
-
-    public MessagePublisher registerUser(String userId)
-    {
-        MessagePublisher messagePublisher = new MessagePublisher();
-        publishers.put(userId, messagePublisher);
-
-        return messagePublisher;
-    }
-
+    /**
+     * Add a new message to the distributed messages topic
+     * @param message
+     */
     public void addMessage(Message message)
     {
         messagesTopic.publish(message);
     }
 
+    /**
+     * Listener implementation for the distributed topic.
+     * @param message to be notified to the user.
+     */
    private void processMessage(com.hazelcast.core.Message<Message> message)
    {
-      /* if (usersConnections.containsKey(message.getMessageObject().getRecipientId()))
+       if (processors.containsKey(message.getMessageObject().getRecipientId()))
        {
-           Flux<ServerSentEvent<List<Message>>> userConnection = usersConnections.get(message.getMessageObject().getRecipientId());
-           userConnection.map(l -> ServerSentEvent.builder(message.getMessageObject()).build());
-       }*/
-
-       if (publishers.containsKey(message.getMessageObject().getRecipientId()))
-       {
-           publishers.get(message.getMessageObject().getRecipientId()).sendMessage(message.getMessageObject());
+           processors.get(message.getMessageObject().getRecipientId()).onNext(message.getMessageObject());
        }
    }
 }

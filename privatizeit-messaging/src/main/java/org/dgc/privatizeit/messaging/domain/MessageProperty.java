@@ -29,4 +29,15 @@ public class MessageProperty implements Serializable
         this.value = value;
     }
     //endregion
+
+
+    @Override
+    public String toString()
+    {
+        final StringBuffer sb = new StringBuffer("MessageProperty{");
+        sb.append("key='").append(key).append('\'');
+        sb.append(", value='").append(value).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

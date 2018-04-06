@@ -1,40 +1,43 @@
 package org.dgc.privatizeit.messaging.controller;
 
+import org.dgc.privatizeit.messaging.config.WebFluxSecurityConfig;
 import org.dgc.privatizeit.messaging.domain.Message;
-import org.dgc.privatizeit.messaging.domain.MessageBuilder;
 import org.dgc.privatizeit.messaging.service.MessageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.ReplayProcessor;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @RestController
 public class MessagingController
 {
+    private static final Logger logger = LoggerFactory.getLogger(MessagingController.class);
+
     @Autowired
     private MessageService messageService;
 
+    /**
+     * Send a message.
+     * @param message to be sent.
+     * @param authentication in the scope allows the system to verify the sender.
+     * @return
+     */
     @PostMapping("/message")
     public ResponseEntity<Void> sendMessage(@RequestBody Message message, Authentication authentication)
     {
         if (!authentication.getName().equals(message.getIssuerId()))
         {
+            logger.warn("USer %s tried to send a message impersonating %s", authentication.getName(), message.getIssuerId());
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -43,19 +46,16 @@ public class MessagingController
         return ResponseEntity.accepted().build();
     }
 
-    @GetMapping(value = "/message", produces = MediaType.TEXT_PLAIN_VALUE)
-    //public Flux<ServerSentEvent<List<Message>>> receiveMessages(Authentication authentication)
+    /**
+     * Connect users to allow receiving notifications.
+     * @param authentication is used to determine the user that is connecting.
+     * @return an asynchronous SSE Flux
+     */
+    @GetMapping(value = "/message", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Flux<ServerSentEvent<Message>> receiveMessages(Authentication authentication)
     {
-        Message message = MessageBuilder.aMessage()
-                .withDuration(1234L)
-                .withIssuerId("daniel")
-                .withPayload("This is an example".getBytes())
-                .withProperties(Collections.emptyList())
-                .withRecipientId("daniel")
-                .build();
+        logger.info("Registering user %s", authentication.getName());
 
-        return Flux.interval(Duration.ofSeconds(1L)).map(l -> ServerSentEvent.<Message>builder(message).build());
-        //return Flux.from(messageService.registerUser(authentication.getName())).map(m -> ServerSentEvent.builder(m).build());
+        return messageService.registerUser(authentication.getName()).map(m -> ServerSentEvent.builder(m).build());
     }
 }
